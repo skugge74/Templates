@@ -1,52 +1,76 @@
-# Makefile Template, Skugge74
+# Makefile Template, Skugge74++
 
-# Compiler and flags
-CC      := gcc
-CFLAGS  := -Wall -Wextra -O2
-
-# Directories
-SRC_DIR := src
+NAME     ?= app
+CC       := gcc
+CFLAGS   := -Wall -Wextra -O2 -Iinclude
+SRC_DIR  := src
 BUILD_DIR := build
-BIN := $(BUILD_DIR)/app
+BIN      := $(BUILD_DIR)/$(NAME)
+TEST_DIR := test
 TEST_BIN := $(BUILD_DIR)/test
 
-# Source files and objects
-SRCS := $(wildcard $(SRC_DIR)/*.c)
-TEST_SRC := $(SRC_DIR)/test.c
-OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(NON_TEST_SRCS))
+SRCS := $(filter-out $(SRC_DIR)/test.c, $(wildcard $(SRC_DIR)/*.c))
+OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
-# Initialize project structure
 init:
-	@mkdir -p $(BUILD_DIR)
-	@mkdir -p assets
-	@mkdir -p $(SRC_DIR)
+	@echo "Initializing project..."
+	@mkdir -p $(SRC_DIR) $(BUILD_DIR) $(TEST_DIR) include assets
+	@echo '#ifndef MAIN_H' > include/main.h
+	@echo '#define MAIN_H' >> include/main.h
+	@echo '' >> include/main.h
+	@echo 'int add(int a, int b);' >> include/main.h
+	@echo '' >> include/main.h
+	@echo '#endif // MAIN_H' >> include/main.h
+	@echo '#include "main.h"' > $(SRC_DIR)/main.c
+	@echo '#include <stdio.h>' >> $(SRC_DIR)/main.c
+	@echo '' >> $(SRC_DIR)/main.c
+	@echo 'int add(int a, int b) {' >> $(SRC_DIR)/main.c
+	@echo '    return a + b;' >> $(SRC_DIR)/main.c
+	@echo '}' >> $(SRC_DIR)/main.c
+	@echo '' >> $(SRC_DIR)/main.c
+	@echo '#ifndef TEST' >> $(SRC_DIR)/main.c
+	@echo 'int main() {' >> $(SRC_DIR)/main.c
+	@echo '    printf("This is main\\n");' >> $(SRC_DIR)/main.c
+	@echo '    return 0;' >> $(SRC_DIR)/main.c
+	@echo '}' >> $(SRC_DIR)/main.c
+	@echo '#endif' >> $(SRC_DIR)/main.c
 
+	@echo '#include "../include/main.h"' > $(TEST_DIR)/test.c
+	@echo '#include <stdio.h>' >> $(TEST_DIR)/test.c
+	@echo '' >> $(TEST_DIR)/test.c
+	@echo '#ifdef TEST' >> $(TEST_DIR)/test.c
+	@echo 'int main() {' >> $(TEST_DIR)/test.c
+	@echo '    printf("This is test\\n");' >> $(TEST_DIR)/test.c
+	@echo '    // You can call add() or other functions here to test' >> $(TEST_DIR)/test.c
+	@echo '    return 0;' >> $(TEST_DIR)/test.c
+	@echo '}' >> $(TEST_DIR)/test.c
+	@echo '#endif' >> $(TEST_DIR)/test.c
 
-# Default target
 all: $(BIN)
 
-# Link the main binary
 $(BIN): $(OBJS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -o $@ $^
 
-# Compile source files to object files (excluding test.c)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Test target (only if test.c exists)
-test: $(TEST_SRC)
+test:
+ifeq ($(wildcard $(TEST_DIR)/test.c),)
+	@echo "No test.c found in $(TEST_DIR)"
+else
 	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -DTEST -o $(TEST_BIN) $(SRCS)
+	$(CC) $(CFLAGS) -DTEST -o $(TEST_BIN) $(SRCS) $(TEST_DIR)/test.c
+	@echo "Running tests..."
 	./$(TEST_BIN)
+endif
 
-# Clean build files
+run: $(BIN)
+	@echo "Running $(BIN)..."
+	./$(BIN)
+
 clean:
 	$(RM) -r $(BUILD_DIR)
 
-# Run the main program
-run: $(BIN)
-	./$(BIN)
-
-.PHONY: all clean run test
+.PHONY: all clean run test init
