@@ -12,41 +12,45 @@ TEST_BIN := $(BUILD_DIR)/test
 SRCS := $(filter-out $(SRC_DIR)/test.c, $(wildcard $(SRC_DIR)/*.c))
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
+all: $(BIN)
+
 init:
 	@echo "Initializing project..."
 	@mkdir -p $(SRC_DIR) $(BUILD_DIR) $(TEST_DIR) include assets
-	@echo '#ifndef MAIN_H' > include/main.h
-	@echo '#define MAIN_H' >> include/main.h
-	@echo '' >> include/main.h
-	@echo 'int add(int a, int b);' >> include/main.h
-	@echo '' >> include/main.h
-	@echo '#endif // MAIN_H' >> include/main.h
-	@echo '#include "main.h"' > $(SRC_DIR)/main.c
+
+	@echo '#ifndef FUNCTIONS_H' > include/functions.h
+	@echo '#define FUNCTIONS_H' >> include/functions.h
+	@echo '' >> include/functions.h
+	@echo 'int add(int a, int b);' >> include/functions.h
+	@echo '' >> include/functions.h
+	@echo '#endif // FUNCTIONS_H' >> include/functions.h
+
+	@echo '#include "functions.h"' > $(SRC_DIR)/functions.c
+	@echo '' >> $(SRC_DIR)/functions.c
+	@echo 'int add(int a, int b) {' >> $(SRC_DIR)/functions.c
+	@echo '    return a + b;' >> $(SRC_DIR)/functions.c
+	@echo '}' >> $(SRC_DIR)/functions.c
+
+	@echo '#include "functions.h"' > $(SRC_DIR)/main.c
 	@echo '#include <stdio.h>' >> $(SRC_DIR)/main.c
-	@echo '' >> $(SRC_DIR)/main.c
-	@echo 'int add(int a, int b) {' >> $(SRC_DIR)/main.c
-	@echo '    return a + b;' >> $(SRC_DIR)/main.c
-	@echo '}' >> $(SRC_DIR)/main.c
 	@echo '' >> $(SRC_DIR)/main.c
 	@echo '#ifndef TEST' >> $(SRC_DIR)/main.c
 	@echo 'int main() {' >> $(SRC_DIR)/main.c
-	@echo '    printf("This is main\\n");' >> $(SRC_DIR)/main.c
+	@echo '    printf("Result: %d\\n", add(3, 4));' >> $(SRC_DIR)/main.c
 	@echo '    return 0;' >> $(SRC_DIR)/main.c
 	@echo '}' >> $(SRC_DIR)/main.c
 	@echo '#endif' >> $(SRC_DIR)/main.c
 
-	@echo '#include "../include/main.h"' > $(TEST_DIR)/test.c
+	@echo '#include "../include/functions.h"' > $(TEST_DIR)/test.c
 	@echo '#include <stdio.h>' >> $(TEST_DIR)/test.c
 	@echo '' >> $(TEST_DIR)/test.c
 	@echo '#ifdef TEST' >> $(TEST_DIR)/test.c
 	@echo 'int main() {' >> $(TEST_DIR)/test.c
-	@echo '    printf("This is test\\n");' >> $(TEST_DIR)/test.c
-	@echo '    // You can call add() or other functions here to test' >> $(TEST_DIR)/test.c
+	@echo '    printf("Testing add: %d\\n", add(10, 5));' >> $(TEST_DIR)/test.c
 	@echo '    return 0;' >> $(TEST_DIR)/test.c
 	@echo '}' >> $(TEST_DIR)/test.c
 	@echo '#endif' >> $(TEST_DIR)/test.c
 
-all: $(BIN)
 
 $(BIN): $(OBJS)
 	@mkdir -p $(dir $@)
