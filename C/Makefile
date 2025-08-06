@@ -1,4 +1,4 @@
-# Makefile Template, Skugge74++
+# Makefile Template, Skugge74
 
 NAME     ?= app
 CC       := gcc
@@ -41,7 +41,7 @@ init:
 	@echo '}' >> $(SRC_DIR)/main.c
 	@echo '#endif' >> $(SRC_DIR)/main.c
 
-	@echo '#include "../include/functions.h"' > $(TEST_DIR)/test.c
+	@echo '#include "functions.h"' > $(TEST_DIR)/test.c
 	@echo '#include <stdio.h>' >> $(TEST_DIR)/test.c
 	@echo '' >> $(TEST_DIR)/test.c
 	@echo '#ifdef TEST' >> $(TEST_DIR)/test.c
